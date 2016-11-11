@@ -30,6 +30,8 @@ func FromReader(r io.Reader) (*Model, error) {
 		return nil, fmt.Errorf("could not extract size/dim from binary model data")
 	}
 
+	size = 1000000
+
 	m := &Model{
 		words: make(map[string]Vector, size),
 		dim:   dim,
@@ -42,6 +44,7 @@ func FromReader(r io.Reader) (*Model, error) {
 		if err != nil {
 			return nil, err
 		}
+
 		w = w[:len(w)-1]
 
 		v := Vector(raw[dim*i : m.dim*(i+1)])
@@ -51,12 +54,17 @@ func FromReader(r io.Reader) (*Model, error) {
 
 		v.Normalise()
 
-		if _, err := br.ReadByte(); err != nil {
-			return nil, err
-		}
+		// they seem to use a different format
+		/*
+			if _, err := br.ReadByte(); err != nil {
+				return nil, err
+			}
+		*/
 
 		m.words[w] = v
 	}
+
+	fmt.Println("all done parsing!")
 	return m, nil
 }
 

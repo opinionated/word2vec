@@ -14,7 +14,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/sajari/word2vec"
+	"github.com/opinionated/word2vec"
 )
 
 var path string
@@ -103,6 +103,7 @@ func main() {
 	}
 
 	before := time.Now()
+	fmt.Println("going to get the goods")
 	pairs, err := m.CosN(expr, n)
 	if err != nil {
 		fmt.Printf("error finding most similar: %v\n", err)
