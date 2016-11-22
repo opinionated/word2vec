@@ -100,7 +100,7 @@ func NewServer(c Coser) http.Handler {
 }
 
 func handleError(w http.ResponseWriter, r *http.Request, status int, msg string) {
-	log.Printf(msg)
+	//log.Printf(msg)
 	w.WriteHeader(status)
 	w.Write([]byte(msg))
 	return
