@@ -61,7 +61,7 @@ func FromReader(r io.Reader) (*Model, error) {
 
 	m.setup()
 	// useful to set for testing
-	//size = 1000
+	size = 500000
 
 	raw := make([]float32, size*dim)
 
@@ -202,6 +202,7 @@ func (m *Model) Vectors(words []string) map[string]Vector {
 
 // Cos returns the cosine similarity of the given expressions.
 func (m *Model) Cos(a, b Expr) (float32, error) {
+	Cluster(m, a, b)
 	u, err := a.Eval(m)
 	if err != nil {
 		return 0, err
@@ -217,6 +218,7 @@ func (m *Model) Cos(a, b Expr) (float32, error) {
 // Coses returns the cosine similarity of each pair of expressions in the list.  Returns
 // immediately if an error occurs.
 func (m *Model) Coses(pairs [][2]Expr) ([]float32, error) {
+	fmt.Println("coses")
 	out := make([]float32, len(pairs))
 	for i, p := range pairs {
 		c, err := m.Cos(p[0], p[1])

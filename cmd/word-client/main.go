@@ -18,6 +18,7 @@ var addr string
 var addListA, subListA string
 var addListB, subListB string
 var sim bool
+var cluster bool
 var n int
 
 func init() {
