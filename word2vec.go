@@ -86,7 +86,7 @@ func FromReader(r io.Reader) (*Model, error) {
 			return nil, err
 		}
 
-		v.Normalise()
+		//v.Normalise()
 
 		m.addWord(w, v)
 	}
@@ -176,6 +176,8 @@ type Coser interface {
 
 	// CosN computes the N most similar words to the expression.
 	CosN(e Expr, n int) ([]Match, error)
+
+	Vectors([]string) map[string]Vector
 }
 
 // Size returns the number of words in the model.

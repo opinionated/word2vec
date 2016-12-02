@@ -76,6 +76,20 @@ func (q cosNQuery) Eval(c Coser) (interface{}, error) {
 	}, nil
 }
 
+type vectorsQuery struct {
+	Expr []string `json:"expr"`
+}
+
+type vectorsResponse struct {
+	Result map[string]Vector `json:"results"`
+}
+
+func (q vectorsQuery) Eval(c Coser) (interface{}, error) {
+	result := c.Vectors(q.Expr)
+	//fmt.Println(result)
+	return &vectorsResponse{Result: result}, nil
+}
+
 // server is a type which implements http.Handler and exports endpoints
 // for performing similarity queries on a word2vec model.
 type server struct {
@@ -94,6 +108,7 @@ func NewServer(c Coser) http.Handler {
 	mux.HandleFunc("/cos-n", ms.handleCosNQuery)
 	mux.HandleFunc("/cos", ms.handleCosQuery)
 	mux.HandleFunc("/coses", ms.handleCosesQuery)
+	mux.HandleFunc("/vecs", ms.handleVecQuery)
 
 	ms.ServeMux = mux
 	return ms
@@ -112,6 +127,7 @@ type evaler interface {
 
 func (s *server) handleEval(e evaler, w http.ResponseWriter, r *http.Request) {
 	resp, err := e.Eval(s.Coser)
+	//fmt.Println(resp)
 	if err != nil {
 		msg := fmt.Sprintf("error evaluating query: %v", err)
 		handleError(w, r, http.StatusBadRequest, msg)
@@ -137,6 +153,21 @@ func (s *server) handleCosQuery(w http.ResponseWriter, r *http.Request) {
 
 	var q cosQuery
 	err := dec.Decode(&q)
+	if err != nil {
+		msg := fmt.Sprintf("error decoding query: %v", err)
+		handleError(w, r, http.StatusInternalServerError, msg)
+		return
+	}
+	s.handleEval(q, w, r)
+}
+
+func (s *server) handleVecQuery(w http.ResponseWriter, r *http.Request) {
+	dec := json.NewDecoder(r.Body)
+	defer r.Body.Close()
+
+	var q vectorsQuery
+	err := dec.Decode(&q)
+	//fmt.Println(q)
 	if err != nil {
 		msg := fmt.Sprintf("error decoding query: %v", err)
 		handleError(w, r, http.StatusInternalServerError, msg)
@@ -274,4 +305,22 @@ func (c Client) CosN(e Expr, n int) ([]Match, error) {
 		return nil, fmt.Errorf("error unmarshalling result: %v", err)
 	}
 	return data.Matches, nil
+}
+
+// Vectors of the word
+func (c Client) Vectors(words []string) (map[string]Vector, error) {
+	req := vectorsQuery{Expr: words}
+	body, err := c.fetch(req, "vecs")
+	if err != nil {
+		fmt.Println("err")
+		return nil, err
+	}
+
+	var data vectorsResponse
+	err = json.Unmarshal(body, &data)
+	if err != nil {
+		fmt.Println("err")
+		return nil, fmt.Errorf("error unmarshalling result: %v", err)
+	}
+	return data.Result, nil
 }
